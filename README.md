@@ -1,130 +1,54 @@
-# 🔒 PermiTrack
+# PermiTrack 0.2.0
 
-**Seu auditor de permissões Android — visualize, entenda e controle o que seus aplicativos podem acessar.**
+> Auditor offline de permissões Android, construído para tornar o acesso solicitado por aplicativos mais compreensível.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Android API](https://img.shields.io/badge/API-24%2B-brightgreen.svg)](https://android-arsenal.com/api?level=24)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22+-blue.svg)](https://kotlinlang.com)
-[![Jetpack Compose](https://img.shields.io/badge/Compose-1.7.0-brightgreen.svg)](https://developer.android.com/jsix)
+## O que mudou
 
-## 📋 Visão Geral
+A versão 0.2.0 transforma a base inicial em um projeto Android estruturado: usa `PackageManager` para inventariar aplicativos visíveis, lê permissões declaradas e o estado concedido, classifica riscos com regras explícitas, persiste resultados com Room/KSP e mantém histórico de mudanças entre varreduras. O dashboard mostra dados reais, com pesquisa, atualização manual, estados de carregamento e erro.
 
-O PermiTrack ajuda os usuários a compreenderem exatamente quais permissões estão concedendo aos seus aplicativos instalados. Em vez de aceitar cegamente os pedidos de permissões, você pode agora:
+Os resultados usam linguagem cuidadosa: “potencialmente excessiva” significa apenas que a permissão é sensível e merece revisão no contexto do aplicativo; não é uma afirmação de que o acesso é desnecessário.
 
-- Visualizar todos os aplicativos instalados e suas permissões
-- Identificar permissões de risco alto e crítico
-- Entender o que cada permissão significa
-- Gerar relatórios de privacidade para compartilhamento
-- Funcionar completamente offline — seus dados nunca deixam seu dispositivo
+## Critérios de risco
 
-## 🌟 Funcionalidades Principais
+`CRITICAL` cobre SMS, gravação de áudio, localização precisa e localização em segundo plano. `HIGH` cobre câmera, contatos, registros de chamadas, armazenamento legado e conexão Bluetooth. `MEDIUM` cobre outras permissões perigosas e dados de calendário/telefone. `LOW` cobre permissões normais ou desconhecidas. As regras estão em `PermissionRiskClassifier.kt` e são deliberadamente determinísticas, offline e auditáveis.
 
-| Funcionalidade | Descrição |
-|---------------|-----------|
-| 📱 **Inventário de Aplicativos** | Lista todos os apps instalados com suas permissões completas |
-| 🏷️ **Classificação de Permissões** | Agrupa permissões por categorias de risco (Baixo, Médio, Alto, Crítico) |
-| ⚠️ **Identificação de Riscos** | Detecta automaticamente permissões perigosas e desnecessárias |
-| 📜 **Histórico de Alterações** | Rastreia quando permissões são adicionadas ou removidas |
-| 📄 **Relatórios de Privacidade** | Gera relatórios detalhados em formato legível |
-| 🌐 **Funcionamento Offline** | Todos os dados processados e armazenados localmente no dispositivo |
-| 📦 **Exportação .zip** | Projeto pronto para publicação em repositórios Git |
+## Privacidade e limitações do Android
 
-## 📱 Telas do Aplicativo
+O projeto não usa internet, rastreamento, telemetria, credenciais ou chaves privadas. Não solicita armazenamento: o relatório é exportado pelo Storage Access Framework, escolhido pelo usuário. Backups automáticos estão desabilitados para evitar cópia inadvertida do banco local.
 
-### Tela Principal
-Visão geral com estatísticas rápidas sobre seus aplicativos, incluindo contagem de permissões e distribuição de risco.
+`QUERY_ALL_PACKAGES` é declarado somente no manifesto e nunca solicitado em tempo de execução, pois é uma permissão especial de visibilidade. O Android e o Google Play restringem seu uso a casos cuja função principal realmente exige conhecer todos os aplicativos instalados; uma publicação real deve avaliar a política vigente e, quando suficiente, usar `<queries>` para declarar apenas os pacotes necessários. O inventário também filtra aplicativos de sistema nesta primeira versão.
 
-<img src="readme-assets/screenshots/main-screen.png" alt="Tela Principal do PermiTrack" width="300"/>
+## Estrutura
 
-### Lista de Aplicativos
-Grid scrollável mostrando todos os aplicativos instalados com indicadores de risco visuais.
-
-<img src="readme-assets/screenshots/app-list.png" alt="Lista de Aplicativos do PermiTrack" width="300"/>
-
-### Detalhe da Permissão
-Visualização detalhada de todas as permissões de um aplicativo específico, com rótulos de risco coloridos.
-
-<img src="readme-assets/screenshots/permission-detail.png" alt="Detalhe da Permissão do PermiTrack" width="300"/>
-
-### Análise de Risco
-Gráficos e estatísticas mostrando a distribuição de risco em todos os seus aplicativos.
-
-<img src="readme-assets/screenshots/risk-analysis.png" alt="Análise de Risco do PermiTrack" width="300"/>
-
-### Relatório de Privacidade
-Tela para gerar e visualizar relatórios de privacidade que podem ser compartilhados.
-
-<img src="readme-assets/screenshots/privacy-report.png" alt="Relatório de Privacidade do PermiTrack" width="300"/>
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Kotlin** - Linguagem principal
-- **Jetpack Compose** - Toolkit moderno para UI nativa em Android
-- **Room** - Camada de banco de dados SQLite robusta e tipo-safe
-- **Android SDK** - Para acesso às permissões e informações dos aplicativos
-
-## 📦 Como Executar o Projeto
-
-```bash
-# Clonar o repositório
-git clone https://github.com/seu-usuario/permittrack.git
-
-# Entrar no diretório
-cd permittrack
-
-# Abrir no Android Studio
-# Ou construir via Gradle
-./gradlew assembleDebug
+```text
+app/src/main/java/com/permitrack/app/
+├── MainActivity.kt
+├── PermiTrackApplication.kt
+├── data/
+│   ├── PermiTrackDatabase.kt
+│   ├── PermissionRepository.kt
+│   └── PermissionRiskClassifier.kt
+└── model/Models.kt
 ```
 
-## 🏗️ Arquitetura do Projeto
+## Build
 
-```
-PermiTrack/
-├── app/
-│   ├── src/main/
-│   │   ├── AndroidManifest.xml
-│   │   ├── java/com/permitrack/permittrack/
-│   │ │   ├── MainActivity.kt           # Entry point da aplicação
-│   │ │   ├── PermiTrackApplication.kt  # Inicialização do banco de dados
-│   │ │   ├── database/
-│   │ │   │   └── PermissionDatabase.kt # Configuração Room
-│   │ │   ├── model/
-│   │ │   │   ├── AppInfo.kt            # Entidade de aplicativo
-│   │ │   │   ├── PermissionInfo.kt      # Entidade de permissão
-│   │ │   │   └── RiskLevel.kt           # Níveis de risco enumerados
-│   │ │   ├── database/dao/
-│   │ │   │   ├── AppInfoDAO.kt          # Data Access Object para apps
-│   │ │   │   └── PermissionInfoDAO.kt   # Data Access Object para permissões
-│   │ │   ├── viewmodel/
-│   │ │   │   └── MainViewModel.kt       # Lógica de UI
-│   │ │   ├── ui/
-│   │ │   │   ├── theme/
-│   │ │   │   │   └── PermiTrackTheme.kt # Tema Material Design
-│   │ │   │   ├── navigation/
-│   │ │   │   │   └── PermiTrackNavHost.kt # Navigation Compose
-│   │ │   │   ├── screens/
-│   │ │   │   │   ├── MainScreen.kt      # Tela inicial
-│   │ │   │   │   ├── AppListScreen.kt   # Lista de aplicativos
-│   │ │   │   │   ├── PermissionDetailScreen.kt # Detalhe permissões
-│   │ │   │   │   ├── RiskAnalysisScreen.kt   # Análise de risco
-│   │ │   │   │   └── PrivacyReportScreen.kt # Relatório privacidade
-│   │ │   │   └── MainActivity.kt          # Activity principal
-│   │   └── res/
-│   │       └── (resources)
-│   ├── build.gradle.kts
-│   └── ...
-└── README.md
-```
+O projeto contém configurações Kotlin DSL, SDK 35, AGP 8.7.3, Kotlin 2.0.21, Compose 1.7.6, Room 2.6.1 e KSP. O wrapper aponta para Gradle 8.9. Nesta sessão não foi possível executar Gradle/Android SDK: o ambiente de Chat não disponibiliza um executor de comandos nem um SDK verificável. Portanto, o APK e os testes não foram executados aqui; a árvore entregue é fonte, não um build validado.
 
-## 📜 Licença
+## Imagens
 
-Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Não foram incluídos screenshots: o aplicativo não pôde ser executado neste ambiente, e nenhum mockup é apresentado como captura real.
 
-## 🙏 Créditos
+## Licença
 
-Desenvolvido com ❤️ por desenvolvedores Android. Inspirado nas necessidades de transparência de permissões dos usuários modernos.
+MIT.
 
----
+## Development status
 
-**PermiTrack** — Porque suas permissões, suas regras.
+Version 0.2.0 is a development preview.
+
+- Build and automated tests have not been validated.
+- The official Gradle Wrapper is incomplete.
+- Gradle 8.9, JDK 17 and Android SDK 35 are required.
+- The application ID has changed to com.permitrack.app.
+- A complete security audit is still pending.
